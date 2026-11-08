@@ -1,0 +1,491 @@
+// =============================================================================
+// Music Tracker — Official Database Schema v1.0
+// Multi-user Ready · Spotify-first · Multi-source Extensible
+// Database: PostgreSQL | ORM: Prisma ORM
+// Models: 16 | Enums: 8
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// 1. ENUMS (8 Enums)
+// =============================================================================
+
+/// Vai trò của người dùng trong hệ thống ứng dụng
+enum UserRole {
+  ADMIN
+  USER
+}
+
+/// Loại token xác thực và bảo mật người dùng
+enum TokenType {
+  REFRESH_TOKEN
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+/// Nền tảng dịch vụ âm nhạc tích hợp (mở rộng trong tương lai)
+enum MusicProvider {
+  SPOTIFY
+  APPLE_MUSIC
+  YOUTUBE_MUSIC
+  LOCAL_FILE
+}
+
+/// Trạng thái ủy quyền kết nối của Provider
+enum ConnectionStatus {
+  CONNECTED
+  REAUTH_REQUIRED
+  DISCONNECTED
+}
+
+/// Vai trò của nghệ sĩ đối với bài hát
+enum ArtistRole {
+  PRIMARY
+  FEATURED
+  PRODUCER
+  REMIXER
+}
+
+/// Phân loại album / phát hành âm nhạc
+enum AlbumType {
+  ALBUM
+  SINGLE
+  COMPILATION
+  EP
+}
+
+/// Chế độ đồng bộ dữ liệu
+enum SyncMode {
+  AUTO
+  MANUAL
+}
+
+/// Trạng thái tiến trình đồng bộ
+enum SyncStatus {
+  IDLE
+  RUNNING
+  SUCCESS
+  FAILED
+  RATE_LIMITED
+  PARTIAL_SUCCESS
+}
+
+// =============================================================================
+// 2. AUTHENTICATION (3 Models: User, AuthSession, AuthToken)
+// =============================================================================
+
+/// Người dùng ứng dụng (Hỗ trợ multi-user, sở hữu riêng catalog & history)
+model User {
+  id           String   @id @default(uuid()) @db.VarChar(36)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  displayName  String?  @map("display_name") @db.VarChar(100)
+  avatarUrl    String?  @map("avatar_url") @db.VarChar(500)
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  authSessions        AuthSession[]
+  authTokens          AuthToken[]
+  providerConnections ProviderConnection[]
+  artists             Artist[]
+  albums              Album[]
+  tracks              Track[]
+  listeningEvents     ListeningEvent[]
+  syncRuns            SyncRun[]
+
+  @@map("users")
+}
+
+/// Phiên đăng nhập hoạt động của người dùng
+model AuthSession {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @map("user_id") @db.VarChar(36)
+  userAgent String?  @map("user_agent") @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  isValid   Boolean  @default(true) @map("is_valid")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authTokens AuthToken[]
+
+  @@index([userId])
+  @@map("auth_sessions")
+}
+
+/// Token xác thực (Refresh token, Reset mật khẩu, Xác nhận Email)
+model AuthToken {
+  id        String    @id @default(uuid()) @db.VarChar(36)
+  userId    String    @map("user_id") @db.VarChar(36)
+  sessionId String?   @map("session_id") @db.VarChar(36)
+  tokenHash String    @unique @map("token_hash") @db.VarChar(255)
+  tokenType TokenType @map("token_type")
+  isRevoked Boolean   @default(false) @map("is_revoked")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz()
+
+  // Relations
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session AuthSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tokenType])
+  @@map("auth_tokens")
+}
+
+// =============================================================================
+// 3. PROVIDER MANAGEMENT (1 Model: ProviderConnection)
+// =============================================================================
+
+/// Liên kết tài khoản với nhà cung cấp nhạc (Tách biệt với Application Auth)
+model ProviderConnection {
+  id                    String           @id @default(uuid()) @db.VarChar(36)
+  userId                String           @map("user_id") @db.VarChar(36)
+  provider              MusicProvider    @default(SPOTIFY)
+  providerUserId        String           @map("provider_user_id") @db.VarChar(100)
+  providerUserEmail     String?          @map("provider_user_email") @db.VarChar(255)
+  providerDisplayName   String?          @map("provider_display_name") @db.VarChar(255)
+  accessTokenEncrypted  String           @map("access_token_encrypted") @db.Text
+  refreshTokenEncrypted String           @map("refresh_token_encrypted") @db.Text
+  tokenExpiresAt        DateTime         @map("token_expires_at") @db.Timestamptz()
+  scopes                String           @db.Text
+  status                ConnectionStatus @default(CONNECTED)
+  connectedAt           DateTime         @default(now()) @map("connected_at") @db.Timestamptz()
+  updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  syncState       ProviderSyncState?
+  syncRuns        SyncRun[]
+  providerArtists ProviderArtist[]
+  providerAlbums  ProviderAlbum[]
+  providerTracks  ProviderTrack[]
+  listeningEvents ListeningEvent[]
+
+  @@unique([userId, provider, providerUserId])
+  @@index([userId])
+  @@index([provider, status])
+  @@map("provider_connections")
+}
+
+// =============================================================================
+// 4. CANONICAL CATALOG (5 Models: Track, Artist, Album, TrackArtist, TrackAlbum)
+// =============================================================================
+
+/// Nghệ sĩ chuẩn hóa trong kho nhạc cá nhân của User
+model Artist {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  userId    String   @map("user_id") @db.VarChar(36)
+  name      String   @db.VarChar(255)
+  bio       String?  @db.Text
+  imageUrl  String?  @map("image_url") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackArtists    TrackArtist[]
+  providerArtists ProviderArtist[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("artists")
+}
+
+/// Album chuẩn hóa trong kho nhạc cá nhân của User
+model Album {
+  id            String    @id @default(uuid()) @db.VarChar(36)
+  userId        String    @map("user_id") @db.VarChar(36)
+  name          String    @db.VarChar(255)
+  albumType     AlbumType @default(ALBUM) @map("album_type")
+  releaseDate   String?   @map("release_date") @db.VarChar(50)
+  totalTracks   Int?      @map("total_tracks")
+  coverImageUrl String?   @map("cover_image_url") @db.VarChar(500)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackAlbums    TrackAlbum[]
+  providerAlbums ProviderAlbum[]
+
+  @@index([userId, name])
+  @@map("albums")
+}
+
+/// Bài hát chuẩn hóa trong kho nhạc cá nhân của User
+model Track {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  userId      String   @map("user_id") @db.VarChar(36)
+  title       String   @db.VarChar(255)
+  durationMs  Int?     @map("duration_ms")
+  isExplicit  Boolean  @default(false) @map("is_explicit")
+  isrc        String?  @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackArtists    TrackArtist[]
+  trackAlbums     TrackAlbum[]
+  providerTracks  ProviderTrack[]
+  listeningEvents ListeningEvent[]
+
+  @@index([userId, title])
+  @@index([userId, isrc])
+  @@map("tracks")
+}
+
+/// Bảng liên kết N-N giữa Bài hát chuẩn và Nghệ sĩ chuẩn
+model TrackArtist {
+  id        String     @id @default(uuid()) @db.VarChar(36)
+  trackId   String     @map("track_id") @db.VarChar(36)
+  artistId  String     @map("artist_id") @db.VarChar(36)
+  role      ArtistRole @default(PRIMARY)
+  position  Int        @default(0)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  track  Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, artistId, role])
+  @@index([artistId])
+  @@map("track_artists")
+}
+
+/// Bảng liên kết N-N giữa Bài hát chuẩn và Album chuẩn
+model TrackAlbum {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  trackId     String   @map("track_id") @db.VarChar(36)
+  albumId     String   @map("album_id") @db.VarChar(36)
+  discNumber  Int      @default(1) @map("disc_number")
+  trackNumber Int?     @map("track_number")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  album Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@unique([trackId, albumId])
+  @@index([albumId])
+  @@map("track_albums")
+}
+
+// =============================================================================
+// 5. PROVIDER CATALOG (4 Models: ProviderTrack, ProviderArtist, ProviderAlbum, ProviderTrackArtist)
+// =============================================================================
+
+/// Nghệ sĩ theo nguồn cung cấp (Spotify Artist metadata & mapping)
+model ProviderArtist {
+  id                String        @id @default(uuid()) @db.VarChar(36)
+  connectionId      String        @map("connection_id") @db.VarChar(36)
+  canonicalArtistId String?       @map("canonical_artist_id") @db.VarChar(36)
+  provider          MusicProvider @default(SPOTIFY)
+  providerArtistId  String        @map("provider_artist_id") @db.VarChar(100)
+  name              String        @db.VarChar(255)
+  providerUri       String?       @map("provider_uri") @db.VarChar(255)
+  providerUrl       String?       @map("provider_url") @db.VarChar(500)
+  imageUrl          String?       @map("image_url") @db.VarChar(500)
+  rawMetadata       Json?         @map("raw_metadata")
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  connection          ProviderConnection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  canonicalArtist     Artist?               @relation(fields: [canonicalArtistId], references: [id], onDelete: SetNull)
+  providerTrackArtists ProviderTrackArtist[]
+
+  @@unique([connectionId, providerArtistId])
+  @@index([provider, providerArtistId])
+  @@index([canonicalArtistId])
+  @@map("provider_artists")
+}
+
+/// Album theo nguồn cung cấp (Spotify Album metadata & mapping)
+model ProviderAlbum {
+  id               String        @id @default(uuid()) @db.VarChar(36)
+  connectionId     String        @map("connection_id") @db.VarChar(36)
+  canonicalAlbumId String?       @map("canonical_album_id") @db.VarChar(36)
+  provider         MusicProvider @default(SPOTIFY)
+  providerAlbumId  String        @map("provider_album_id") @db.VarChar(100)
+  name             String        @db.VarChar(255)
+  albumType        String?       @map("album_type") @db.VarChar(50)
+  releaseDate      String?       @map("release_date") @db.VarChar(50)
+  totalTracks      Int?          @map("total_tracks")
+  coverImageUrl    String?       @map("cover_image_url") @db.VarChar(500)
+  providerUri      String?       @map("provider_uri") @db.VarChar(255)
+  providerUrl      String?       @map("provider_url") @db.VarChar(500)
+  rawMetadata      Json?         @map("raw_metadata")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  connection     ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  canonicalAlbum Album?             @relation(fields: [canonicalAlbumId], references: [id], onDelete: SetNull)
+  providerTracks ProviderTrack[]
+
+  @@unique([connectionId, providerAlbumId])
+  @@index([provider, providerAlbumId])
+  @@index([canonicalAlbumId])
+  @@map("provider_albums")
+}
+
+/// Bài hát theo nguồn cung cấp (Spotify Track metadata & mapping)
+model ProviderTrack {
+  id               String        @id @default(uuid()) @db.VarChar(36)
+  connectionId     String        @map("connection_id") @db.VarChar(36)
+  canonicalTrackId String?       @map("canonical_track_id") @db.VarChar(36)
+  providerAlbumId  String?       @map("provider_album_id") @db.VarChar(36)
+  provider         MusicProvider @default(SPOTIFY)
+  providerTrackId  String        @map("provider_track_id") @db.VarChar(100)
+  title            String        @db.VarChar(255)
+  durationMs       Int?          @map("duration_ms")
+  isExplicit       Boolean       @default(false) @map("is_explicit")
+  isrc             String?       @db.VarChar(50)
+  providerUri      String?       @map("provider_uri") @db.VarChar(255)
+  providerUrl      String?       @map("provider_url") @db.VarChar(500)
+  rawMetadata      Json?         @map("raw_metadata")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  connection          ProviderConnection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  canonicalTrack      Track?                @relation(fields: [canonicalTrackId], references: [id], onDelete: SetNull)
+  providerAlbum       ProviderAlbum?        @relation(fields: [providerAlbumId], references: [id], onDelete: SetNull)
+  providerTrackArtists ProviderTrackArtist[]
+  listeningEvents     ListeningEvent[]
+
+  @@unique([connectionId, providerTrackId])
+  @@index([provider, providerTrackId])
+  @@index([canonicalTrackId])
+  @@index([isrc])
+  @@map("provider_tracks")
+}
+
+/// Bảng liên kết N-N giữa Provider Track và Provider Artist
+model ProviderTrackArtist {
+  id               String     @id @default(uuid()) @db.VarChar(36)
+  providerTrackId  String     @map("provider_track_id") @db.VarChar(36)
+  providerArtistId String     @map("provider_artist_id") @db.VarChar(36)
+  role             ArtistRole @default(PRIMARY)
+  position         Int        @default(0)
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  providerTrack  ProviderTrack  @relation(fields: [providerTrackId], references: [id], onDelete: Cascade)
+  providerArtist ProviderArtist @relation(fields: [providerArtistId], references: [id], onDelete: Cascade)
+
+  @@unique([providerTrackId, providerArtistId, role])
+  @@index([providerArtistId])
+  @@map("provider_track_artists")
+}
+
+// =============================================================================
+// 6. LISTENING (1 Model: ListeningEvent)
+// =============================================================================
+
+/// Sự kiện nghe nhạc thực tế (Honest Data Rule: Không tự suy diễn thời lượng phát)
+model ListeningEvent {
+  id               String    @id @default(uuid()) @db.VarChar(36)
+  userId           String    @map("user_id") @db.VarChar(36)
+  connectionId     String    @map("connection_id") @db.VarChar(36)
+  providerTrackId  String    @map("provider_track_id") @db.VarChar(36)
+  canonicalTrackId String?   @map("canonical_track_id") @db.VarChar(36)
+  playedAt         DateTime  @map("played_at") @db.Timestamptz()
+  contextType      String?   @map("context_type") @db.VarChar(50)
+  contextUri       String?   @map("context_uri") @db.VarChar(255)
+  observedAt       DateTime  @default(now()) @map("observed_at") @db.Timestamptz()
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Honest Data Invariants (Luôn là NULL trong MVP do Spotify API không cung cấp)
+  startedAt          DateTime? @map("started_at") @db.Timestamptz()
+  endedAt            DateTime? @map("ended_at") @db.Timestamptz()
+  listenedDurationMs Int?      @map("listened_duration_ms")
+  startProgressMs    Int?      @map("start_progress_ms")
+  endProgressMs      Int?      @map("end_progress_ms")
+  completionRate     Float?    @map("completion_rate")
+
+  // Relations
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection     ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  providerTrack  ProviderTrack      @relation(fields: [providerTrackId], references: [id], onDelete: Cascade)
+  canonicalTrack Track?             @relation(fields: [canonicalTrackId], references: [id], onDelete: SetNull)
+
+  // Khóa chống trùng lặp theo từng kết nối provider và mốc playedAt
+  @@unique([connectionId, providerTrackId, playedAt])
+  @@index([userId, playedAt(sort: Desc)])
+  @@index([canonicalTrackId])
+  @@map("listening_events")
+}
+
+// =============================================================================
+// 7. SYNCHRONIZATION (2 Models: ProviderSyncState, SyncRun)
+// =============================================================================
+
+/// Trạng thái đồng bộ và Checkpoint của kết nối Provider (Quan hệ 1-1)
+model ProviderSyncState {
+  id                     String     @id @default(uuid()) @db.VarChar(36)
+  connectionId           String     @unique @map("connection_id") @db.VarChar(36)
+  syncMode               SyncMode   @default(AUTO) @map("sync_mode")
+  syncIntervalMinutes    Int        @default(30) @map("sync_interval_minutes")
+  lastSyncAttemptAt      DateTime?  @map("last_sync_attempt_at") @db.Timestamptz()
+  lastSuccessfulSyncAt   DateTime?  @map("last_successful_sync_at") @db.Timestamptz()
+  lastProcessedPlayedAt  DateTime?  @map("last_processed_played_at") @db.Timestamptz()
+  nextSyncAt             DateTime?  @map("next_sync_at") @db.Timestamptz()
+  status                 SyncStatus @default(IDLE)
+  lastErrorCode          String?    @map("last_error_code") @db.VarChar(100)
+  retryAfter             Int?       @map("retry_after")
+  consecutiveFailures    Int        @default(0) @map("consecutive_failures")
+  createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt              DateTime   @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  connection ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([nextSyncAt, status])
+  @@map("provider_sync_states")
+}
+
+/// Nhật ký lịch sử chi tiết cho từng lần chạy đồng bộ
+model SyncRun {
+  id                  String     @id @default(uuid()) @db.VarChar(36)
+  connectionId        String     @map("connection_id") @db.VarChar(36)
+  userId              String     @map("user_id") @db.VarChar(36)
+  syncMode            SyncMode   @map("sync_mode")
+  status              SyncStatus
+  startedAt           DateTime   @default(now()) @map("started_at") @db.Timestamptz()
+  completedAt         DateTime?  @map("completed_at") @db.Timestamptz()
+  durationMs          Int?       @map("duration_ms")
+  cursorBefore        String?    @map("cursor_before") @db.VarChar(255)
+  cursorAfter         String?    @map("cursor_after") @db.VarChar(255)
+  recordsFetched      Int        @default(0) @map("records_fetched")
+  recordsInserted     Int        @default(0) @map("records_inserted")
+  recordsSkipped      Int        @default(0) @map("records_skipped")
+  errorCode           String?    @map("error_code") @db.VarChar(100)
+  errorMessage        String?    @map("error_message") @db.Text
+  hasPotentialDataGap Boolean    @default(false) @map("has_potential_data_gap")
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  connection ProviderConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, startedAt(sort: Desc)])
+  @@index([userId, startedAt(sort: Desc)])
+  @@map("sync_runs")
+}
+

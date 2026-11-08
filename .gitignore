@@ -1,0 +1,67 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Environment variables & secrets (MUST NEVER COMMIT)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+credentials.json
+*.pem
+*.key
+id_rsa
+
+# Production build outputs
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Test coverage & reports
+coverage/
+.nyc_output/
+
+# IDE & Editor files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Database / Storage files
+*.sqlite
+*.sqlite3
+*.db
+pgdata/
+postgres-data/
+
+# Temporary files & Scratchpads
+tmp/
+temp/
+C:\Users\mcraf\.gemini\antigravity\brain\
