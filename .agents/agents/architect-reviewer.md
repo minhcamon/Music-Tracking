@@ -42,6 +42,9 @@
 ---
 
 ### Bước 3 — Xuất Báo cáo Đánh giá (Review Verdict)
+
+> **Document Harness Rule:** Báo cáo thẩm định thiết kế xuất trực tiếp qua chat response / tin nhắn hội thoại, TUYỆT ĐỐI KHÔNG tạo file markdown trung gian trên đĩa.
+
 Trả về kết quả ngắn gọn theo 3 mức:
 - **PASS:** Thiết kế chuẩn mực, nhất quán với guidelines, có thể tiến hành code ngay.
 - **PASS WITH NOTES:** Đạt yêu cầu nhưng có một số điểm lưu ý nhỏ cần dev chú ý khi implement.

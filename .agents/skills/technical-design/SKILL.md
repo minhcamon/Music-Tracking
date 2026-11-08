@@ -11,14 +11,17 @@ Hỗ trợ agent `solution-architect` lập hồ sơ thiết kế kỹ thuật c
 
 ## Các bước thực hiện:
 
+> **Document Harness Rule:** Áp dụng nguyên tắc thiết kế tinh gọn (Lean Design). Đối với tính năng thông thường, ưu tiên hợp nhất thành 1 tài liệu kỹ thuật duy nhất (`docs/specs/design/<MÃ_CHỨC_NĂNG>/design.md`). Chỉ tách thành 3 file riêng biệt khi tính năng có độ phức tạp quy mô lớn và người dùng yêu cầu rõ ràng.
+
 1. **Đọc Spec Nghiệp vụ & Xác định Phạm vi:**
    - Đọc yêu cầu từ `docs/specs/business-spec/<MÃ_CHỨC_NĂNG>/`.
    - Xác định phạm vi tầng phụ trách: BE-only, FE-only hoặc Full-stack.
    - Nạp kiến trúc tổng thể tại `docs/context/architecture.md`.
 
-2. **Khởi tạo Thư mục Thiết kế:**
+2. **Khởi tạo Hồ sơ Thiết kế:**
    - Tạo thư mục: `docs/specs/design/<MÃ_CHỨC_NĂNG>/`.
-   - Sao chép 3 file mẫu từ `docs/specs/design/_template/`:
+   - Với tính năng tiêu chuẩn: Sử dụng 1 file tổng hợp `design.md` (bao gồm API DTOs, sơ đồ tuần tự và lớp).
+   - Với dự án lớn/Enterprise: Sao chép 3 file mẫu từ `docs/specs/design/_template/`:
      - `API_Spec.md`
      - `Component_Class_Design.md`
      - `Processing_Flow.md`

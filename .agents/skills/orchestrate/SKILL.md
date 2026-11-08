@@ -99,12 +99,22 @@ Orchestrator đối chiếu yêu cầu với `docs/context/scope.md`:
 
 ---
 
-### Bước 6: Định tuyến & Điều phối Kỹ năng Chuyên môn (Skill Routing)
-Orchestrator xác định và kích hoạt các chuyên gia kỹ thuật phù hợp:
+### Bước 6: Định tuyến & Điều phối Kỹ năng Chuyên môn (Skill Routing & Subagent Harness)
+Orchestrator xác định và kích hoạt các chuyên gia kỹ thuật phù hợp, đồng thời áp đặt **Document Harness** chặt chẽ:
 - **Backend Concern:** Kích hoạt chuyên gia Backend (`developer-backend`, `docs/guidelines/backend/`).
 - **Frontend Concern:** Kích hoạt chuyên gia Frontend (`developer-frontend`, `docs/guidelines/frontend/`).
 - **Multi-domain / Fullstack:** Điều phối hợp đồng giao tiếp chung (Shared Contract / DTO) trước khi các skill con thực thi độc lập.
 - **Review Concern:** Kích hoạt `code-reviewer-backend` hoặc `code-reviewer-frontend`.
+
+#### Ràng buộc Subagent Document Harness (Chống Lạm phát Tài liệu):
+1. **Headless Execution (Thực thi Không Rườm rà):** Subagent chạy inline hoặc background để thực hiện tác vụ kỹ thuật cụ thể (viết code, chạy test, audit). CẤM subagent tạo các file markdown trung gian (`BRIEFING.md`, `DISPATCH.md`, `handoff.md`, `progress.md`) trên đĩa.
+2. **Kênh Phản hồi:** Mọi kết luận, review verdict (`APPROVE` / `REQUEST_CHANGES`), log kiểm thử đều phải gửi qua tin nhắn hội thoại hoặc console stdout, không ghi ra file markdown rời rạc.
+3. **Ngân sách Tài liệu (Document Budget):**
+   - `QUESTION` / `TRIVIAL`: 0 file markdown.
+   - `BUG_FIX` / `SMALL_MODIFY`: 0 file markdown mới (chỉ sửa code + báo cáo 5 điểm inline).
+   - `NEW_FEATURE`: Tối đa 1 file spec/plan hợp nhất nếu cần; tuyệt đối không sinh 3 file design trống hoặc chia nhỏ thành nhiều plan lắt nhắt.
+   - `ARCHITECTURAL_CHANGE`: Duy nhất 1 file ADR trong `docs/decisions/`.
+4. **Đơn nguồn Chân lý State:** Toàn bộ trạng thái phiên làm việc chỉ được lưu tại `.agents/state/<dev-id>/current-task.md`. Subagent không được tạo thư mục state riêng.
 
 ---
 
@@ -150,6 +160,7 @@ Tự động ghi nhận hoặc đề xuất ghi nhận backlog khi:
 ### MUST
 - **MUST** phân loại task trước khi hành động.
 - **MUST** áp dụng quy trình tối thiểu đủ dùng (*Minimum sufficient process*), không ép quy trình nặng nề cho task nhỏ.
+- **MUST** thực thi Document Harness: Kiểm soát nghiêm ngặt ngân sách tài liệu sinh ra và buộc subagent hoạt động theo chế độ lean/headless.
 - **MUST** dừng lại và báo cáo khi phát hiện vi phạm ranh giới (Scope violation) hoặc tác động kiến trúc chưa phê duyệt.
 - **MUST** yêu cầu Vertical Verification cho các tính năng người dùng trước khi đánh dấu hoàn thành.
 
@@ -158,3 +169,4 @@ Tự động ghi nhận hoặc đề xuất ghi nhận backlog khi:
 - **NEVER** âm thầm mở rộng scope hoặc tự tiện thêm library/framework ngoài danh mục duyệt.
 - **NEVER** coi một tính năng hoàn thành chỉ vì build/compile pass.
 - **NEVER** nạp toàn bộ tài liệu dự án một cách bừa bãi khi xử lý task nhỏ.
+- **NEVER** để subagents tạo file markdown tạm thời, ceremony documents (`BRIEFING.md`, `DISPATCH.md`, `handoff.md`, `progress.md`), hoặc sinh các thư mục state rác ngoài `.agents/state/<dev-id>/current-task.md`.

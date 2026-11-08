@@ -162,6 +162,10 @@ Kết thúc mỗi tác vụ có sửa đổi code, Agent **BẮT BUỘC** phản
 8. **Quản lý Trạng thái:** Chạy skill `task-state-init` khi bắt đầu tính năng mới và đồng bộ `progress-tracker` sau mỗi bước hoàn thành.
 9. **Xác minh Hoàn tất theo Chiều dọc (Vertical Completeness):** Đối với tính năng có giao diện người dùng, phải kiểm chứng toàn bộ luồng nghiệp vụ thực tế (User Action $\rightarrow$ UI $\rightarrow$ API $\rightarrow$ Backend $\rightarrow$ DB $\rightarrow$ Response $\rightarrow$ UI State $\rightarrow$ Re-open/Persist) trước khi đánh dấu hoàn thành.
 10. **Đánh giá DoD & Báo cáo:** Kiểm tra Definition of Done và trả về Báo cáo 5 điểm minh bạch khi kết thúc task.
+11. **Harness Kiểm soát Tài liệu & Chống Lạm phát (Lean Document Harness):** 
+    - Chỉ tạo tài liệu lâu dài thực sự cần thiết (`docs/context/`, `docs/decisions/`, `docs/specs/`). 
+    - Báo cáo review, audit, test output, challenge findings BẮT BUỘC gửi trực tiếp qua chat message/stdout, CẤM tạo file markdown trung gian (`BRIEFING.md`, `DISPATCH.md`, `handoff.md`, `progress.md`) trên đĩa.
+    - Giữ DUY NHẤT một nguồn chân lý trạng thái: `.agents/state/<dev-id>/current-task.md`.
 
 ### NEVER (Cấm Tuyệt đối)
 - **NEVER** tự ý mở rộng phạm vi (Scope Creep) hoặc tiện tay sửa những phần ngoài scope đã duyệt (*Scope Expansion Protection*).
@@ -171,4 +175,5 @@ Kết thúc mỗi tác vụ có sửa đổi code, Agent **BẮT BUỘC** phản
 - **NEVER** coi một tính năng hoàn thành chỉ vì build/compile pass mà chưa kiểm chứng luồng hoạt động thực tế.
 - **NEVER** âm thầm thay đổi kiến trúc hoặc phá vỡ envelope API chuẩn `{ code, message, data }`.
 - **NEVER** nạp toàn bộ tài liệu dự án một cách bừa bãi cho các task đơn giản (tránh lãng phí context window).
+- **NEVER** để subagents sinh tài liệu ceremony rác, tạo các thư mục state phân mảnh (`.agents/teamwork/*`, v.v.) hoặc spam markdown logs ra đĩa (Document Inflation).
 

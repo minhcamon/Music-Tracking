@@ -141,3 +141,29 @@ Agent tự động ghi nhận hoặc đề xuất ghi nhận backlog khi:
 - Phát hiện yêu cầu nằm ngoài phạm vi hiện tại (Out-of-Scope).
 - Phát hiện nợ kỹ thuật (Tech debt) hoặc cơ hội tái cấu trúc nhưng không nên làm ngay để tránh scope creep.
 - Phát hiện edge case tiềm ẩn chưa đủ điều kiện an toàn để xử lý tức thì.
+
+---
+
+## 9. Harness Kiểm soát Tài liệu & Chống Lạm phát (Lean Document Harness)
+
+Nhằm đảm bảo codebase sạch sẽ, tránh lãng phí context window và không làm loãng tri thức kỹ thuật của dự án, mọi Agent và Subagent phải tuân thủ nghiêm ngặt:
+
+### 9.1 Phân cấp Tài liệu: Lưu Vĩnh viễn vs Trực tiếp Runtime
+- **Persistent Artifacts (Lưu vào Git / `docs/`):** Chỉ dành cho các tài liệu mang giá trị kiến trúc và quy chuẩn lâu dài:
+  - `docs/context/` (Kiến trúc, phạm vi, thuật ngữ).
+  - `docs/decisions/` (Các quyết định kiến trúc quan trọng - ADR).
+  - `docs/guidelines/` (Quy ước lập trình, bảo mật).
+  - `docs/specs/business-spec/` (Yêu cầu chức năng).
+  - `.agents/state/<dev-id>/current-task.md` (State hiện tại của developer).
+- **Ephemeral Output (Không tạo file trên đĩa):** Các kết quả thẩm định, rà soát mã nguồn (code review), kiểm thử (test run), bàn giao trung gian (handoff) **BẮT BUỘC** hiển thị trực tiếp trong phản hồi chat / stdout, **CẤM** tạo file markdown trên workspace (`BRIEFING.md`, `DISPATCH.md`, `handoff.md`, `progress.md`, v.v.).
+
+### 9.2 Quy tắc Vận hành Subagent Headless
+1. Subagent chỉ tập trung vào việc đọc mã nguồn, viết code, hoặc chạy kiểm thử; không đóng vai trò "thư ký" tạo file tài liệu meta.
+2. Subagent gửi kết quả trực tiếp cho Orchestrator/Parent qua message; không tạo thư mục state hay file báo cáo độc lập.
+3. Duy nhất Orchestrator hoặc kỹ sư chính chịu trách nhiệm cập nhật trạng thái vào `.agents/state/<dev-id>/current-task.md`.
+
+### 9.3 Ngân sách Tài liệu (Document Budget)
+- **Tác vụ Nhỏ (`TRIVIAL` / `BUG_FIX` / `SMALL_MODIFY`):** Ngân sách tài liệu mới = **0**.
+- **Tính năng Mới (`NEW_FEATURE`):** Tối đa 1 tài liệu kế hoạch hợp nhất; không tự ý tạo thêm 3-5 file template trống nếu không có yêu cầu chi tiết.
+- **Thay đổi Kiến trúc (`ARCHITECTURAL_CHANGE`):** Tối đa 1 file ADR trong `docs/decisions/`.
+

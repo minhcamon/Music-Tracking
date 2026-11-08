@@ -46,6 +46,9 @@
 ---
 
 ## Bước 3 — Xuất Báo cáo Kết quả (Review Verdict)
+
+> **Document Harness Rule:** Báo cáo review xuất trực tiếp qua chat response / tin nhắn hội thoại, TUYỆT ĐỐI KHÔNG tạo file markdown trung gian (`handoff.md`, `review.md`) trên đĩa.
+
 Đưa ra kết luận rõ ràng:
 - **APPROVED:** Mã nguồn sạch, đúng convention, xử lý state an toàn, sẵn sàng commit.
 - **CHANGES REQUESTED:** Nêu rõ các vị trí cần sửa:

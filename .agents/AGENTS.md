@@ -59,3 +59,19 @@ Khi một tính năng chạm tới cả Backend, Frontend và Database (Fullstac
 - **Tự động Thực thi Inline:** AI Coordinator tự điều phối và thực thi procedure inline, không yêu cầu người dùng chuyển đổi agent thủ công.
 - **Bảo vệ Ranh giới (Scope Guard):** Nếu yêu cầu vượt phạm vi hiện tại (Out of Scope), bắt buộc DỪNG LẠI, ghi nhận đề xuất vào backlog và xin xác nhận.
 - **Kiểm soát Kiến trúc (Architecture Guard):** Mọi thay đổi về Data Model, API Breaking Change, hoặc thêm Library phải qua bước lập ADR và xin phê duyệt.
+- **Harness Kiểm soát Tài liệu (Document Harness Gate):** 
+  - Subagents KHÔNG ĐƯỢC sinh các file markdown trung gian (`BRIEFING.md`, `DISPATCH.md`, `handoff.md`, `progress.md`) trên đĩa.
+  - Subagents hoạt động theo cơ chế Headless: nhận task, xử lý code/review, trả kết quả trực tiếp qua message hoặc console stdout.
+  - Đơn nguồn chân lý: Chỉ duy nhất Orchestrator / Lead Dev cập nhật `.agents/state/<dev-id>/current-task.md`. Tuyệt đối không sinh thư mục state riêng cho từng subagent.
+
+---
+
+## 5. Ngân sách Tài liệu theo Phân loại Tác vụ (Document Generation Budget)
+
+| Loại Tác vụ | Ngân sách File Tài liệu Tối đa | Hình thức Bàn giao & Báo cáo |
+|---|---|---|
+| `QUESTION` / `TRIVIAL` | **0 file** | Phản hồi trực tiếp qua chat / inline commit. |
+| `BUG_FIX` / `SMALL_MODIFY` | **0 file** mới | Cập nhật trực tiếp mã nguồn + Báo cáo 5 điểm inline. |
+| `NEW_FEATURE` | **1 file** spec/plan (nếu cần) | Cập nhật `current-task.md`, không tách vụn ra nhiều plan riêng lẻ. |
+| `ARCHITECTURAL_CHANGE` | **1 file** ADR (`docs/decisions/`) | ADR chuẩn mẫu, không sinh thêm tài liệu râu ria. |
+
