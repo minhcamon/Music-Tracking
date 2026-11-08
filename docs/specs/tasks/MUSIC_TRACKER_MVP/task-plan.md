@@ -10,7 +10,7 @@
 
 | Mã Plan | Tên Kế hoạch Thực thi | Phạm vi | Cổng Kiểm soát | Trạng thái | Tài liệu Chi tiết (9 mục) |
 |---|---|---|---|---|---|
-| **PLAN-00** | Khởi tạo Cấu trúc Dự án (Project Scaffolding v0) | Fullstack / Architecture | Architecture Guard | **ĐÃ DUYỆT (READY)** | [plan-00-codebase-scaffolding-v0.md](plan-00-codebase-scaffolding-v0.md) |
+| **PLAN-00** | Khởi tạo Cấu trúc Dự án (Project Scaffolding v0) | Fullstack / Architecture | Architecture Guard | **HOÀN THÀNH (DONE)** | [plan-00-codebase-scaffolding-v0.md](plan-00-codebase-scaffolding-v0.md) |
 | **PLAN-01** | Thiết kế CSDL & Schema v1.0 (16 Models, 8 Enums) | Database | Architecture Guard | **HOÀN THÀNH (DONE)** | [plan-01-database-design-v1.md](plan-01-database-design-v1.md) |
 | **PLAN-02** | Khởi tạo Git & Môi trường Baseline | Hạ tầng / DevOps | Security & Scope Guard | **HOÀN THÀNH (DONE)** | [plan-02-project-scaffolding-git-baseline.md](plan-02-project-scaffolding-git-baseline.md) |
 | **PLAN-03** | Backend Core & Spotify Provider Integration | Backend (NestJS) | Provider Isolation & Token Security | **ĐÃ DUYỆT (READY)** | [plan-03-backend-spotify-integration.md](plan-03-backend-spotify-integration.md) |
@@ -24,7 +24,7 @@
 ```mermaid
 flowchart TD
     P1["PLAN-01: Database Schema v1.0\n(16 models, 8 enums) [DONE]"] --> P2["PLAN-02: Git Baseline & Environment\n(Remote GitHub, Docker Postgres) [DONE]"]
-    P2 --> P0["PLAN-00: Codebase Scaffolding v0\n(Independent: backend/ & frontend/) [READY]"]
+    P2 --> P0["PLAN-00: Codebase Scaffolding v0\n(Independent: backend/ & frontend/) [DONE]"]
     P0 --> P3["PLAN-03: Backend Core & Spotify OAuth\n(AES-256 Token Encryption, Adapter) [READY]"]
     P3 --> P4["PLAN-04: Sync Engine & Checkpoint\n(Scheduler, Overlap 2m, Dedup) [READY]"]
     P4 --> P5["PLAN-05: Frontend Management UI\n(shadcn/ui, TanStack Query, Manual Sync) [READY]"]

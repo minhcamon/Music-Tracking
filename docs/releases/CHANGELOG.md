@@ -8,11 +8,39 @@
 ## [Unreleased] — Kế hoạch Phát triển Tiếp theo (Roadmap MVP)
 
 ### Planned (Sắp triển khai)
-- **Backend Core:** Scaffolding NestJS Modular Monolith, tích hợp Passport OAuth2 Spotify.
-- **Provider Module:** Mã hóa AES-256-GCM lưu trữ access/refresh tokens.
-- **Sync Engine:** Bộ lập lịch cron `@nestjs/schedule` với cơ chế overlap buffer 2 phút.
-- **Deduplication:** Khóa unique DB chống trùng lặp `(connection_id, provider_track_id, played_at)`.
-- **Frontend SPA:** Giao diện React 19 + shadcn/ui quản lý kết nối và giám sát đồng bộ.
+- **PLAN-03:** Backend Spotify OAuth 2.0 Integration & Token Management (AES-256-GCM).
+- **PLAN-04:** Sync Engine & Checkpoint Management (Scheduler, Overlap 2m, Deduplication).
+- **PLAN-05:** Frontend Management UI (ConnectionCard, SyncIntervalSelector, SyncLogTable, ListeningEventList).
+
+---
+
+## [v0.2.0] — 2026-11-08 (Version 0: Codebase Scaffolding — PLAN-00)
+
+> Hoàn thành toàn diện việc khởi tạo khung mã nguồn độc lập cho Backend NestJS và Frontend React 19 theo kế hoạch PLAN-00 đã duyệt. Thẩm định độc lập bởi `teamwork_victory_auditor` (VICTORY CONFIRMED).
+
+### Added
+- **Backend Modular Monolith (`backend/`):**
+  - Cấu hình NestJS 10.x/11.x với TypeScript strict mode, cổng 3000, tiền tố toàn cục `/api/v1`, CORS, và `ValidationPipe`.
+  - Đồng bộ `prisma/schema.prisma` v1.0 (16 models, 8 enums) và sinh Prisma Client v5.22.0.
+  - Endpoint sức khỏe `GET /api/v1/health` trả về response envelope chuẩn `{ code: 0, message: "OK", data: { status: "healthy" } }`.
+  - Cài đặt `TransformResponseInterceptor` và `HttpExceptionFilter` chuẩn hóa định dạng API envelope.
+  - Cài đặt tiện ích mã hóa AES-256-GCM (`CryptoUtil`) với IV 12-byte và auth tag 16-byte cho token lưu trữ.
+  - Bộ khung các modules nghiệp vụ: `HealthModule`, `PrismaModule`, `ProviderModule`, `ListeningModule`, `SynchronizationModule`.
+  - Cô lập nhà cung cấp (Provider Isolation): Toàn bộ Spotify API Client, Mapper và Types nằm tại `src/integrations/spotify/`.
+  - 4 bộ Unit test suites (12 tests passed) và E2E test cho `HealthController`.
+- **Frontend SPA (`frontend/`):**
+  - Khởi tạo Single Page Application với React 19, TypeScript, Vite 6, Tailwind CSS 3.4, và shadcn/ui primitives (`Button`, `Card`, `Badge`).
+  - Cấu hình Vite reverse proxy chuyển tiếp các request `/api` sang `http://localhost:3000`.
+  - Base API Client (`api-client.ts`) tự động unwrap envelope `{ code, message, data }` và map lỗi chuẩn.
+  - Khung giao diện: `MainLayout`, `Header` có dynamic polling badge trạng thái backend health, `Sidebar`, cùng các module stubs (`connection`, `sync`, `history`, `dashboard`).
+  - Đóng gói production `tsc -b && vite build` hoàn thành 1663 modules, 0 lỗi.
+- **Root Workspace Runner Scripts (`package.json`):**
+  - Cung cấp các lệnh điều phối: `npm run dev:backend`, `npm run dev:frontend`, `npm run build:backend`, `npm run build:frontend`, `npm run test:backend`, `npm run prisma:generate`.
+
+### Security & Compliance
+- Tuân thủ **Honest Data Rule**: Các trường thời lượng thực tế trên mapper và models luôn là `null`.
+- Tuân thủ **Provider Isolation**: Không import types hoặc logic của Spotify ra ngoài `src/integrations/spotify/`.
+- Cập nhật và lưu vết nhật ký hoàn thành tại `.agents/state/nhatminhyt06/current-task.md` và `progress.md`.
 
 ---
 
