@@ -56,3 +56,4 @@ NestJS Backend ──► Trao đổi Token với Spotify ──► Mã hóa AES-
 
 ### 9. Ảnh hưởng Kiến trúc (Architecture Impact)
 - Bảo toàn nguyên tắc **Provider Isolation**: Tuyệt đối không import thư viện hoặc types của Spotify vào core domain.
+

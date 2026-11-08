@@ -62,3 +62,4 @@ TanStack Query Cache ──► Re-render UI & Toast thông báo
 
 ### 9. Ảnh hưởng Kiến trúc (Architecture Impact)
 - Phân tách rõ ràng giữa Presentation Layer (UI) và Domain/API Logic, đảm bảo dễ bảo trì và mở rộng trong tương lai.
+

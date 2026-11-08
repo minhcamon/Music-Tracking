@@ -58,3 +58,4 @@ Ghi nhận SyncRun audit log ──► Cập nhật ProviderSyncState (SUCCESS, 
 
 ### 9. Ảnh hưởng Kiến trúc (Architecture Impact)
 - Đảm bảo hệ thống có khả năng phục hồi hoàn hảo (Fault-tolerant & Self-healing) sau khi server bị crash hoặc khởi động lại.
+

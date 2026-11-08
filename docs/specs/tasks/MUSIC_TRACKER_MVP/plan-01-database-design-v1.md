@@ -53,3 +53,4 @@ Listening Domain (listening_events) ──► Thuộc sở hữu User (users)
 
 ### 9. Ảnh hưởng Kiến trúc (Architecture Impact)
 - Đảm bảo khả năng mở rộng thêm Apple Music, YouTube Music hay Local Files mà không cần đập đi xây lại bảng `tracks` hay `listening_events`.
+

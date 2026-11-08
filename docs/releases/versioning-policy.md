@@ -77,3 +77,4 @@ Một phiên bản chỉ được gắn tag và phát hành khi thỏa mãn:
 3. **Honest Data Rule:** Toàn bộ bản ghi không tự suy diễn thời lượng phát.
 4. **Security Pass:** Không có token dạng plain text; biến môi trường được bảo vệ qua `.gitignore`.
 5. **Changelog Updated:** File `docs/releases/CHANGELOG.md` đã ghi nhận đầy đủ các mục thay đổi.
+

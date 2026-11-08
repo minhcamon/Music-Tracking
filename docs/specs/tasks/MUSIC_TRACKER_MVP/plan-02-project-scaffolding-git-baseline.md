@@ -42,3 +42,4 @@ Dev Local ──► Git Add / Conventional Commit ──► Branch 'main' ──
 
 ### 9. Ảnh hưởng Kiến trúc (Architecture Impact)
 - Đảm bảo tính bảo mật và toàn vẹn mã nguồn ngay từ commit gốc đầu tiên.
+

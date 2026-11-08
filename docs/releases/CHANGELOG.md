@@ -48,3 +48,4 @@
 - Thiết lập quy tắc bắt buộc mã hóa AES-256-GCM cho OAuth token at rest.
 - Loại trừ toàn bộ `.env` và bí mật cá nhân khỏi Git history.
 - Áp dụng Honest Data Rule: Các trường `startedAt`, `endedAt`, `listenedDurationMs`, `startProgressMs`, `endProgressMs`, `completionRate` bắt buộc `null` trên DB.
+
