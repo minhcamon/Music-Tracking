@@ -70,10 +70,11 @@ pnpm run test
 - `docs/context/domain-glossary.md` (Từ điển thuật ngữ nghiệp vụ VI $\leftrightarrow$ EN)
 
 ### On-Demand Knowledge
+- Quản lý Phiên bản & Changelog: `docs/releases/versioning-policy.md`, `docs/releases/CHANGELOG.md`
 - Đặc tả SRS gốc: `docs/srs/music-tracker-srs-v1.0.md`, `docs/srs/ecosystem-srs.md`
 - Đặc tả Chức năng: `docs/specs/business-spec/<MÃ_CHỨC_NĂNG>/` (ví dụ `MUSIC_TRACKER_MVP`)
 - Thiết kế Kỹ thuật: `docs/specs/design/<MÃ_CHỨC_NĂNG>/`
-- Kế hoạch Bóc tách (Tasks): `docs/specs/tasks/<MÃ_CHỨC_NĂNG>/`
+- Kế hoạch Đã duyệt (Tasks): `docs/specs/tasks/<MÃ_CHỨC_NĂNG>/` (ví dụ `task-plan.md`, `plan-01` $\rightarrow$ `plan-05`)
 - Bằng chứng Xác minh: `docs/specs/verification/`
 - Quyết định Kiến trúc: `docs/decisions/` (ADR-0001 $\rightarrow$ ADR-0005)
 

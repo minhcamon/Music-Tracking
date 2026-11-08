@@ -19,7 +19,9 @@
 │   ├── context/                  # Tầm nhìn sản phẩm, ranh giới scope, kiến trúc, thuật ngữ, workflow
 │   ├── decisions/                # Sổ ghi nhận Architecture Decision Records (ADR-0001 -> 0005)
 │   ├── guidelines/               # Quy chuẩn kỹ thuật (NestJS, React/shadcn/ui, Security, Gotchas)
-│   └── specs/                    # Đặc tả chức năng, hồ sơ thiết kế kỹ thuật, tasks & verification
+│   ├── releases/                 # Quản lý phiên bản (Versioning Policy) & Nhật ký phát hành (CHANGELOG)
+│   └── specs/                    # Đặc tả chức năng, hồ sơ thiết kế kỹ thuật, kế hoạch đã duyệt (tasks)
+├── prisma/                       # Database Schema v1.0 (16 models, 8 enums)
 ├── AGENTS.md                     # Antigravity Project Hub, Hợp đồng MUST/NEVER & Lệnh CLI
 └── README.md                     # Giới thiệu tổng quan hệ thống
 ```
